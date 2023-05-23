@@ -17,8 +17,8 @@ global text_classifier
 global messages
 messages = []
 
-# BERT 모델 load
-def load_model():
+
+def load_bert():
     global text_classifier
 
     loaded_tokenizer = AutoTokenizer.from_pretrained(BERT_PATH)
@@ -32,27 +32,23 @@ def load_model():
     )
 
 
-# 서버에서 받은 텍스트 데이터를 BERT 모델로 예측하는 함수
-def predict_sentiment(text):
+def predict_sentiment(question):
     global text_classifier
 
-    pred = text_classifier(text)[0]
-    predicted_label = int(re.sub(r'[^0-9]', '', pred[0]['label']))
+    result = text_classifier(question)[0]
+    feel_idx = int(re.sub(r'[^0-9]', '', result[0]['label']))
+    feel = sentiments.Feel[feel_idx]["label"]
 
-    return predicted_label
+    return feel
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
-    data = request.get_json()
-    content = data['text']
-    feel_idx = predict_sentiment(content)  # bert출력
+    question = request.get_json()['text']
+    feel = predict_sentiment(question)
+    
+    messages.append({"role": "user", "content": question + feel})
 
-    # gpt+bert
-    feel = sentiments.Feel[feel_idx]["label"]
-    messages.append({"role": "user", "content": content + feel})
-
-    # 감정 문장 생성
     completion = openai.ChatCompletion.create(
         model=GPT_NAME,
         messages=messages
@@ -64,6 +60,6 @@ def predict():
 
 
 if __name__ == '__main__':
-    load_model()
+    load_bert()
     messages.append({"role": "system", "content": "친구, 일상대화, 반말"})
     app.run()
