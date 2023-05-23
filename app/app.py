@@ -10,21 +10,19 @@ from transformers import TextClassificationPipeline
 app = Flask(__name__)
 CORS(app)
 
-MODEL_PATH = "burningfalls/my-fine-tuned-bert"
+BERT_PATH = "burningfalls/my-fine-tuned-bert"
+GPT_NAME = "gpt-3.5-turbo"
 
 global text_classifier
-
-model = "gpt-3.5-turbo"
+global messages
 messages = []
-messages.append({"role": "system", "content": "친구, 일상대화, 반말"})
-
 
 # BERT 모델 load
 def load_model():
     global text_classifier
 
-    loaded_tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH)
-    loaded_model = TFAutoModelForSequenceClassification.from_pretrained(MODEL_PATH)
+    loaded_tokenizer = AutoTokenizer.from_pretrained(BERT_PATH)
+    loaded_model = TFAutoModelForSequenceClassification.from_pretrained(BERT_PATH)
 
     text_classifier = TextClassificationPipeline(
         tokenizer=loaded_tokenizer,
@@ -56,7 +54,7 @@ def predict():
 
     # 감정 문장 생성
     completion = openai.ChatCompletion.create(
-        model=model,
+        model=GPT_NAME,
         messages=messages
     )
     chat_response = completion.choices[0].message.content
@@ -67,4 +65,5 @@ def predict():
 
 if __name__ == '__main__':
     load_model()
+    messages.append({"role": "system", "content": "친구, 일상대화, 반말"})
     app.run()
