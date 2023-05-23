@@ -46,8 +46,8 @@ def predict_sentiment(question):
 def predict():
     question = request.get_json()['text']
     feel = predict_sentiment(question)
-    
-    messages.append({"role": "user", "content": question + feel})
+    print(f"\nfeel: {feel}\n")
+    messages.append({"role": "user", "content": question + ' ;; ' + feel})
 
     completion = openai.ChatCompletion.create(
         model=GPT_NAME,
@@ -61,5 +61,5 @@ def predict():
 
 if __name__ == '__main__':
     load_bert()
-    messages.append({"role": "system", "content": "친구, 일상대화, 반말"})
+    messages.append({"role": "system", "content": "친구, 일상대화, 반말, ';;' 뒤에 있는 감정을 답변 문장에 반영"})
     app.run()
