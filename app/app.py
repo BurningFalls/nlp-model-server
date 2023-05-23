@@ -42,21 +42,26 @@ def predict_sentiment(question):
     return feel
 
 
+def generate_answer(question, feel):
+    messages.append({"role": "user", "content": question + ' ;; ' + feel})
+
+    result = openai.ChatCompletion.create(
+        model=GPT_NAME,
+        messages=messages
+    )   
+    answer = result.choices[0].message.content
+
+    messages.append({"role": "assistant", "content": answer})
+    return answer
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
     question = request.get_json()['text']
     feel = predict_sentiment(question)
-    print(f"\nfeel: {feel}\n")
-    messages.append({"role": "user", "content": question + ' ;; ' + feel})
+    answer = generate_answer(question, feel)
 
-    completion = openai.ChatCompletion.create(
-        model=GPT_NAME,
-        messages=messages
-    )
-    chat_response = completion.choices[0].message.content
-    messages.append({"role": "assistant", "content": chat_response})
-
-    return jsonify({'result': chat_response})
+    return jsonify({'result': answer})
 
 
 if __name__ == '__main__':
