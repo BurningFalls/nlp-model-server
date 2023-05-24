@@ -12,6 +12,7 @@ CORS(app)
 
 BERT_PATH = "burningfalls/my-fine-tuned-bert"
 GPT_NAME = "gpt-3.5-turbo"
+GPT_OPTION = "친구, 일상대화, 반말, ';;' 뒤에 있는 감정을 답변 문장에 반영"
 
 global text_classifier
 global messages
@@ -66,5 +67,5 @@ def predict():
 
 if __name__ == '__main__':
     load_bert()
-    messages.append({"role": "system", "content": "친구, 일상대화, 반말, ';;' 뒤에 있는 감정을 답변 문장에 반영"})
+    messages.append({"role": "system", "content": GPT_OPTION})
     app.run()
