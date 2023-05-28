@@ -37,6 +37,6 @@ pip install -r requirements.txt
 ```
 3. Flask application을 실행한다.
 ```
-python app.app.py
+python app/app.py
 ```
 4. Web browser에서 `http://localhost:5000` 으로 접속하여 NLP model service를 이용할 수 있다.
