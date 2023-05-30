@@ -29,11 +29,24 @@ requirements.txt
 
 <br>
 
-## 3. 사용 방법
-1. `mykey.py` file에서 OpenAI API key를 입력한다.
-2. 필요한 Python 패키지들을 설치하기 위해 다음 명령을 실행한다.
+## 3. 사용 
+1. 필요한 Python 패키지들을 설치하기 위해 다음 명령을 실행한다.
 ```
 pip install -r requirements.txt
+```
+2. OpenAI API KEY를 입력한다.
+* `mykey.py` file에서 OpenAI API key를 입력한다.
+```python
+# mykey.py
+
+openai.api_key = ""
+```
+* `app.py` file에서 `import KEY`를 `import mykey`로 변경한다.
+```python
+# app.py
+
+# import KEY
+import mykey
 ```
 3. Flask application을 실행한다.
 ```
