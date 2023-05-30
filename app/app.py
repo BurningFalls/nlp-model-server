@@ -85,7 +85,7 @@ def predict():
     # input: question+feel => GPT => output: answer
     answer = generate_answer(question, feel)
 
-    return jsonify({'result': answer})
+    return jsonify({'feel': feel, 'result': answer})
 
 
 if __name__ == '__main__':
