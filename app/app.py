@@ -39,22 +39,25 @@ def load_bert():
         tokenizer=loaded_tokenizer,
         model=loaded_model,
         framework='tf',
-        top_k=1
+        top_k=5
     )
 
 
 # BERT
-# input: question => BERT => output: feel
+# input: question => BERT => output: feel_list
 def predict_sentiment(question):
     global text_classifier
 
     # 질문에 대한 감성 예측 + 인덱스 추출
-    result = text_classifier(question)[0]
-    feel_idx = int(re.sub(r'[^0-9]', '', result[0]['label']))
+    result_list = text_classifier(question)[0]
     # sentiments.py 파일에서 해당 감정 인덱스에 대응하는 감정 레이블 매칭
-    feel = sentiments.Feel[feel_idx]["label"]
+    feels = []
+    for result in result_list:
+        feel_idx = int(re.sub(r'[^0-9]', '', result['label']))
+        feel = sentiments.Feel[feel_idx]["label"]
+        feels.append(feel)
 
-    return feel
+    return feels
 
 
 # GPT
@@ -80,12 +83,21 @@ def generate_answer(question, feel):
 def predict():
     # POST 요청에서 질문(question) 가져오기
     question = request.get_json()['text']
-    # input: question => BERT => output: feel
-    feel = predict_sentiment(question)
+    # input: question => BERT => output: feel_list
+    feel_list = predict_sentiment(question)
     # input: question+feel => GPT => output: answer
+    answer = generate_answer(question, feel_list[0])
+    return jsonify({'feel_list': feel_list, 'result': answer})
+
+
+@app.route('/predict-again', methods=['POST'])
+def predict_again():
+    # POST 요청에서 질문(question)과 감정(feel) 가져오기
+    question = request.get_json()['text']
+    feel = request.get_json()['feel']
     answer = generate_answer(question, feel)
 
-    return jsonify({'feel': feel, 'result': answer})
+    return jsonify({'result': answer})
 
 
 if __name__ == '__main__':
