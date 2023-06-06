@@ -19,12 +19,9 @@ GPT_OPTION = "친구, 일상대화, 반말, ';;' 뒤에 있는 감정을 답변 
 
 # text_classifier: BERT 파이프라인
 global text_classifier
-# messages: GPT에 input으로 들어가는 문장
-#   role -> 'system': 시스템 설정, 'user': 유저의 질문, 'assistant': GPT의 답변 
-#   content -> 문장
-global messages
-messages = []
-
+# 일정 길이(10)의 messages를 관리할 queue
+global queue
+queue = list()
 
 # BERT model을 사용할 수 있게 만들어주는 함수
 def load_bert():
@@ -62,9 +59,31 @@ def predict_sentiment(question):
 
 # GPT
 # input: question+feel => GPT => output: answer
-def generate_answer(question, feel):
-    # {질문+감정}을 'role: user'로 메시지 리스트에 추가
-    messages.append({"role": "user", "content": question + ' ;; ' + feel})
+# idx -> 0: predict / 1: predict-again
+def generate_answer(question, feel, idx):
+    global queue
+
+    if idx == 0:
+        # queue의 길이가 10이면
+        if len(queue) == 10:
+             # 제일 오래된(왼쪽) 메시지(user & assistant) 두 개를 없앰
+            for i in range(2):
+                queue.pop(0)
+    elif idx == 1:
+        # 제일 최근의(오른쪽) 메시지(user & assistant) 두 개를 없앰
+        for i in range(2):
+            queue.pop()
+
+    # {질문+감정}을 queue에 추가 (role: user)        
+    queue.append(question + ' ;; ' + feel)
+
+    # queue를 기반으로, 최근 질문&답변을 이어붙여 GPT의 input으로 넣을 message 생성
+    messages = [{"role": "system", "content": GPT_OPTION}]
+    for i in range(0, len(queue)):
+        if i % 2 == 0:
+            messages.append({"role": "user", "content": queue[i]})
+        elif i % 2 == 1:
+            messages.append({"role": "assistant", "content": queue[i]})
 
     # OpenAI Chat API를 사용하여 답변 생성
     result = openai.ChatCompletion.create(
@@ -73,8 +92,10 @@ def generate_answer(question, feel):
     )   
     answer = result.choices[0].message.content
 
-    # {답변}을 'role: assistant'로 메시지 리스트에 추가
-    messages.append({"role": "assistant", "content": answer})
+    # {답변}을 queue에 추가 (role: assistant)
+    queue.append(answer)
+
+    print(queue)
     
     return answer
 
@@ -86,7 +107,7 @@ def predict():
     # input: question => BERT => output: feel_list
     feel_list = predict_sentiment(question)
     # input: question+feel => GPT => output: answer
-    answer = generate_answer(question, feel_list[0])
+    answer = generate_answer(question, feel_list[0], 0)
     return jsonify({'feel_list': feel_list, 'result': answer})
 
 
@@ -95,7 +116,9 @@ def predict_again():
     # POST 요청에서 질문(question)과 감정(feel) 가져오기
     question = request.get_json()['text']
     feel = request.get_json()['feel']
-    answer = generate_answer(question, feel)
+
+    # input: question+feel => GPT => output: answer
+    answer = generate_answer(question, feel, 1)
 
     return jsonify({'feel_list': '', 'result': answer})
 
@@ -103,7 +126,5 @@ def predict_again():
 if __name__ == '__main__':
     # BERT model 로드
     load_bert()
-    # {커스텀 메시지}를 'role: system'으로 메시지 리스트에 추가
-    messages.append({"role": "system", "content": GPT_OPTION})
     # Flask 애플리케이션 실행
     app.run(host='0.0.0.0')
