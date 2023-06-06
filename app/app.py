@@ -106,4 +106,4 @@ if __name__ == '__main__':
     # {커스텀 메시지}를 'role: system'으로 메시지 리스트에 추가
     messages.append({"role": "system", "content": GPT_OPTION})
     # Flask 애플리케이션 실행
-    app.run()
+    app.run(host='0.0.0.0')
