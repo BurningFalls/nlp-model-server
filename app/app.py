@@ -97,7 +97,7 @@ def predict_again():
     feel = request.get_json()['feel']
     answer = generate_answer(question, feel)
 
-    return jsonify({'result': answer})
+    return jsonify({'feel_list': '', 'result': answer})
 
 
 if __name__ == '__main__':
