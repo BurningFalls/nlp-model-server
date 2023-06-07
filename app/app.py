@@ -59,20 +59,14 @@ def predict_sentiment(question):
 
 # GPT
 # input: question+feel => GPT => output: answer
-# idx -> 0: predict / 1: predict-again
-def generate_answer(question, feel, idx):
+def generate_answer(question, feel):
     global queue
 
-    if idx == 0:
-        # queue의 길이가 10이면
-        if len(queue) == 10:
-             # 제일 오래된(왼쪽) 메시지(user & assistant) 두 개를 없앰
-            for i in range(2):
-                queue.pop(0)
-    elif idx == 1:
-        # 제일 최근의(오른쪽) 메시지(user & assistant) 두 개를 없앰
+    # queue의 길이가 10이면
+    if len(queue) == 10:
+        # 제일 오래된(왼쪽) 메시지(user & assistant) 두 개를 없앰
         for i in range(2):
-            queue.pop()
+            queue.pop(0)
 
     # {질문+감정}을 queue에 추가 (role: user)        
     queue.append(question + ' ;; ' + feel)
@@ -107,7 +101,7 @@ def predict():
     # input: question => BERT => output: feel_list
     feel_list = predict_sentiment(question)
     # input: question+feel => GPT => output: answer
-    answer = generate_answer(question, feel_list[0], 0)
+    answer = generate_answer(question, feel_list[0])
     return jsonify({'feel_list': feel_list, 'result': answer})
 
 
@@ -118,7 +112,7 @@ def predict_again():
     feel = request.get_json()['feel']
 
     # input: question+feel => GPT => output: answer
-    answer = generate_answer(question, feel, 1)
+    answer = generate_answer(question, feel)
 
     return jsonify({'feel_list': '', 'result': answer})
 
