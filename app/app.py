@@ -63,13 +63,13 @@ def generate_answer(question, feel):
     global queue
 
     # queue의 길이가 10이면
+    # 제일 오래된(왼쪽) 메시지(user & assistant) 두 개를 없앰
     if len(queue) == 10:
-        # 제일 오래된(왼쪽) 메시지(user & assistant) 두 개를 없앰
         for i in range(2):
             queue.pop(0)
 
     # {질문+감정}을 queue에 추가 (role: user)        
-    queue.append(question + ' ;; ' + feel)
+    queue.append(question[:(min, len(question), 128)] + ' ;; ' + feel)
 
     # queue를 기반으로, 최근 질문&답변을 이어붙여 GPT의 input으로 넣을 message 생성
     messages = [{"role": "system", "content": GPT_OPTION}]
@@ -87,7 +87,7 @@ def generate_answer(question, feel):
     answer = result.choices[0].message.content
 
     # {답변}을 queue에 추가 (role: assistant)
-    queue.append(answer)
+    queue.append(answer[:(min, len(answer), 128)])
 
     print(queue)
     
@@ -102,6 +102,7 @@ def predict():
     feel_list = predict_sentiment(question)
     # input: question+feel => GPT => output: answer
     answer = generate_answer(question, feel_list[0])
+    
     return jsonify({'feel_list': feel_list, 'result': answer})
 
 
