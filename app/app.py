@@ -69,7 +69,7 @@ def generate_answer(question, feel):
             queue.pop(0)
 
     # {질문+감정}을 queue에 추가 (role: user)        
-    queue.append(question[:(min, len(question), 128)] + ' ;; ' + feel)
+    queue.append(question[:(min(len(question), 128))] + ' ;; ' + feel)
 
     # queue를 기반으로, 최근 질문&답변을 이어붙여 GPT의 input으로 넣을 message 생성
     messages = [{"role": "system", "content": GPT_OPTION}]
@@ -87,7 +87,7 @@ def generate_answer(question, feel):
     answer = result.choices[0].message.content
 
     # {답변}을 queue에 추가 (role: assistant)
-    queue.append(answer[:(min, len(answer), 128)])
+    queue.append(answer[:(min(len(question), 128))])
     
     return answer
 
