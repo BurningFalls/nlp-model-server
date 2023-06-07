@@ -88,8 +88,6 @@ def generate_answer(question, feel):
 
     # {답변}을 queue에 추가 (role: assistant)
     queue.append(answer[:(min, len(answer), 128)])
-
-    print(queue)
     
     return answer
 
@@ -102,7 +100,7 @@ def predict():
     feel_list = predict_sentiment(question)
     # input: question+feel => GPT => output: answer
     answer = generate_answer(question, feel_list[0])
-    
+
     return jsonify({'feel_list': feel_list, 'result': answer})
 
 
